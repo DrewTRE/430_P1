@@ -9,115 +9,70 @@
 using namespace std;
 
 int main () {
+	// read = 0, write = 1
+	enum {read, write};
 	// 2 Pipes. 
 	// [0] is read, [1] is write, [2] is error. 
 	// For the sake of making it easier for me to follow, names will be pretty literal. 
 	int pipe1[2];
 	int pipe2[2];
-	// pid_t is a signed integer which is capable of representing a process ID. 
-	//pid_t pid; 
 
-	//======================================Pipes======================================//
+	// Create the first pipe. 
 	// Error if pipe fails to create. 
 	if (pipe(pipe1) == -1) {
-		perror("pipe1 failed");
-		exit(1);
-	} else {
-		cout << "pipe1 created" << endl;
-	}
-
-	//======================================Forks======================================//
-
-	// Child. wc -l 
-	int status;
-
-	pid_t child = fork(); 
+		perror("pipe1 failed");		
+	} 
+	// Child. 
+	// pid_t is a signed integer which is capable of representing a process ID. 
+	pid_t pid;  
 	// If pid is -1 the fork failed.
-	if (child == -1) {
-		cout << "Failed child fork" << endl; 
-		exit(1);
+	
+	if ((pid = fork()) == -1) {
+		perror("fork failed");	  	
 	} 
 	// If pid is set to 0, it's a child.
-	else if (child == 0) {
-		cout << "Child" << endl; 
-		// child(pipe1, pipe2);
-		dup2(pipe1[0], STDIN_FILENO);
-		close(pipe1[0]);
-		close(pipe1[1]);
-		execlp("/usr/bin/wc", "wc", "-l", nullptr);	
-		perror("Unable to execute wc");
-		exit(1);
-	}
+	if (pid == 0) {
+		dup2(pipe1[write], STDOUT_FILENO);
+		close(pipe1[read]);
+		execlp("/bin/ps", "ps", "-A", nullptr);		
+		perror("Unable to execute ps");	
 
-	// Error if pipe fails to create. 
-	if (pipe(pipe2) == -1) {
-		perror("pipe2 failed");
-		exit(1);
+	// Parent Process.
 	} else {
-		cout << "pipe2 created"<< endl;
+		wait(nullptr);
 	}
-
-	// Grandchild. grep argv[1].
-	pid_t grandchild = fork(); 
-	if (grandchild == -1) {
-		cout << "Failed child fork" << endl; 
-		exit(1);
+	// If pid is greater than 0, this is now a parent. 
+	if (pid > 0) {
+		//Error if pipe fails to create. 
+		if (pipe(pipe2) == -1) {
+			perror("pipe2 failed");		
+		}
+		//Grandchild. grep.
+		if ((pid = fork()) == -1) {
+		perror("fork failed");	  	
+		} 
+		if (pid == 0) {
+			dup2(pipe1[read], STDIN_FILENO);
+			dup2(pipe2[write], STDOUT_FILENO);
+			close(pipe2[read]);
+			close(pipe1[write]); 
+			execlp("/bin/grep", "grep", "kworker", nullptr);	
+			perror("Unable to execute grep");			
+		}
+		else if (pid > 0) {
+			// Great Grandchild. 
+			if ((pid = fork()) == -1) {
+			perror("fork failed");	  	
+			} 
+			if (pid == 0) {
+				dup2(pipe2[read], STDIN_FILENO);
+				close(pipe1[read]);
+				close(pipe1[write]);
+				close(pipe2[write]);
+				execlp("/usr/bin/wc", "wc", "-l", nullptr);	
+				perror("Unable to execute wc");
+			}
+		} 
 	} 
-	else if (grandchild == 0) {
-		// child(pipe1, pipe2).
-		cout << "Grandchild" << endl; 
-		dup2(pipe1[0], STDIN_FILENO);
-		dup2(pipe2[1], STDOUT_FILENO);
-		close(pipe1[0]);
-		close(pipe1[1]);
-		close(pipe2[0]);
-		close(pipe2[1]);
-		execlp("/bin/grep", "grep", "argv[1]", nullptr);	
-		perror("Unable to execute grep");
-		exit(1);
-	}
-
-	close(pipe1[0]);
-	close(pipe1[1]);
-
-	// Great Grandchild. ps -A. 
-	pid_t greatgrandchild = fork();
-	if (greatgrandchild == -1) {
-		cout << "Failed child fork" << endl; 
-		exit(1);
-	} 
-	else if (greatgrandchild == 0) {
-		cout << "Great Grandchild" << endl; 
-		// child(pipe1, pipe2);
-		dup2(pipe2[1], STDOUT_FILENO);
-		close(pipe2[0]);
-		close(pipe2[1]);
-		execlp("/bin/ps", "ps", "-A", nullptr);	
-		perror("Unable to execute ps");
-		exit(1); 	
-	} 
-	else {
-		// Back to the parent. 
-		wait(&status);
-		wait(&status);
-		cout << "Back on Parent" << endl; 
-	}
 	return 0;
 }
-//execlp("/usr/bin/wc", "wc", "-l", nullptr);
-// void child (int pipe1[2], int pipe2[2]) {
-// 	dup2(pipe1[1], STDOUT_FILENO);
-// 	close(pipe1[0]);
-// 	close(pipe1[1]);
-// 	execlp("/usr/bin/wc", "wc", "-l", nullptr);
-// 	perror("Unable to execute wc");
-// 	exit(1);
-// }
-
-// void grandchild (int pipe1[2], int pipe2[2]) {
-	
-// }
-
-// void greatgrandchild (int pipe1[2], int pipe2[2]) {
-	
-// }
