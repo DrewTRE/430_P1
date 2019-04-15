@@ -8,7 +8,7 @@
 
 using namespace std;
 
-int main () {
+int main (int argc, char* argv[]) {
 	// read = 0, write = 1
 	enum {read, write};
 	// 2 Pipes. 
@@ -56,7 +56,7 @@ int main () {
 			dup2(pipe2[write], STDOUT_FILENO);
 			close(pipe2[read]);
 			close(pipe1[write]); 
-			execlp("/bin/grep", "grep", "kworker", nullptr);	
+			execlp("/bin/grep", "grep", argv[1], nullptr);	
 			perror("Unable to execute grep");			
 		}
 		else if (pid > 0) {
