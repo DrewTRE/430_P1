@@ -67,6 +67,7 @@ int main (int argc, char* argv[]) {
 			execlp("/bin/grep", "grep", argv[1], nullptr);	
 			perror("Unable to execute grep");			
 		}
+		// Nested if statement for the next child. 
 		else if (pid > 0) {
 			// Great Grandchild. wc. 
 			if ((pid = fork()) == -1) {
