@@ -1,0 +1,15 @@
+drew@LinuxDrew:~/Documents/Git/430_P1$ ps -A | grep kworker | wc -l
+23
+drew@LinuxDrew:~/Documents/Git/430_P1$ ./processes kworker
+drew@LinuxDrew:~/Documents/Git/430_P1$ 23
+
+drew@LinuxDrew:~/Documents/Git/430_P1$ ps -A | grep sshd | wc -l
+0
+drew@LinuxDrew:~/Documents/Git/430_P1$ ./processes sshd
+drew@LinuxDrew:~/Documents/Git/430_P1$ 0
+
+drew@LinuxDrew:~/Documents/Git/430_P1$ ps -A | grep scsi | wc -l
+4
+drew@LinuxDrew:~/Documents/Git/430_P1$ ./processes scsi
+drew@LinuxDrew:~/Documents/Git/430_P1$ 4
+

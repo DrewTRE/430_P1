@@ -1,3 +1,10 @@
+/*Andrew Kwak 
+* CSS430 Project 1 Part 1 Proccesses
+* Piping for this program will go from top to bottom to produce an output. 
+* Uses nested if statements. 
+* Calling forks up front would have also worked. 
+*/
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h> 
@@ -52,6 +59,7 @@ int main (int argc, char* argv[]) {
 		perror("fork failed");	  	
 		} 
 		if (pid == 0) {
+			// Redirect and close. 
 			dup2(pipe1[read], STDIN_FILENO);
 			dup2(pipe2[write], STDOUT_FILENO);
 			close(pipe2[read]);
@@ -60,11 +68,12 @@ int main (int argc, char* argv[]) {
 			perror("Unable to execute grep");			
 		}
 		else if (pid > 0) {
-			// Great Grandchild. 
+			// Great Grandchild. wc. 
 			if ((pid = fork()) == -1) {
 			perror("fork failed");	  	
 			} 
 			if (pid == 0) {
+				// Redirect and close. 
 				dup2(pipe2[read], STDIN_FILENO);
 				close(pipe1[read]);
 				close(pipe1[write]);
